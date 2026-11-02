@@ -1,6 +1,11 @@
 name: Tests
 
-on: [push, pull_request]
+# pull requests are tested on their own; push only for main, so a PR's
+# branch isn't tested twice
+on:
+  push:
+    branches: [main]
+  pull_request:
 
 jobs:
   pytest:

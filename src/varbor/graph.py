@@ -14,6 +14,7 @@ Coordinates are pygenogrove's: 0-based, both ends inclusive.
 """
 
 import collections
+import gzip
 import re
 
 import pygenogrove as pg
@@ -27,11 +28,18 @@ def parse_gtf(path):
     A record holds chrom, strand, the 0-based closed span, gene id and name,
     the exons, the CDS start (the first coding base in transcript orientation,
     0-based) with that codon's frame, and whether the CDS start is incomplete.
+
+    The file may be gzipped and its lines in any order. A transcript id is
+    expected once: a GTF that reuses one at another locus (as copies on the
+    pseudoautosomal regions can) would merge both into one record, so it is
+    refused, as is an exon whose transcript has no transcript line.
     """
     tx = {}
+    exons = collections.defaultdict(list)
     cds = collections.defaultdict(list)
-    for line in open(path):
-        if line.startswith("#"):
+    opener = gzip.open if str(path).endswith(".gz") else open
+    for line in opener(path, "rt"):
+        if line.startswith("#") or not line.strip():
             continue
         f = line.rstrip("\n").split("\t")
         if f[2] not in ("transcript", "exon", "CDS"):
@@ -42,6 +50,8 @@ def parse_gtf(path):
         tid = attrs["transcript_id"][0]
         start, end = int(f[3]) - 1, int(f[4]) - 1
         if f[2] == "transcript":
+            if tid in tx:
+                raise ValueError(f"{path}: transcript {tid} appears more than once")
             tx[tid] = {
                 "transcript_id": tid,
                 "chrom": f[0],
@@ -51,15 +61,18 @@ def parse_gtf(path):
                 "gene_id": attrs["gene_id"][0],
                 "gene_name": (attrs.get("gene_name") or [None])[0],
                 "cds_start_nf": "cds_start_NF" in attrs.get("tag", []),
-                "exons": [],
             }
         elif f[2] == "exon":
-            tx[tid]["exons"].append((start, end))
+            exons[tid].append((start, end))
         else:
             cds[tid].append((start, end, int(f[7])))
 
+    orphans = set(exons) - set(tx)
+    if orphans:
+        raise ValueError(f"{path}: exons of {len(orphans)} transcript(s) without a transcript line, "
+                         f"e.g. {sorted(orphans)[0]}")
     for tid, rec in tx.items():
-        rec["exons"].sort()
+        rec["exons"] = sorted(exons.get(tid, []))
         parts = sorted(cds.get(tid, []))
         if not parts:
             rec["cds_start"] = rec["cds_frame"] = None

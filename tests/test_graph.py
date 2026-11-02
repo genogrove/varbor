@@ -1,6 +1,12 @@
+import gzip
+import random
+
 import pygenogrove as pg
+import pytest
 
 from varbor import graph
+
+from conftest import DATA
 
 
 def test_every_transcript_walks_its_gtf_exons(grove, transcripts):
@@ -46,3 +52,30 @@ def test_serialized_graph_answers_the_same(grove, transcripts, tmp_path):
             walked.append((nxt[0].value.start, nxt[0].value.end))
             nxt = view.get_neighbors_if(nxt[0], lambda tids: tid in tids)
         assert walked == r["exons"], tid
+
+
+def test_gtf_may_be_gzipped_shuffled_and_have_blank_lines(transcripts, tmp_path):
+    lines = open(DATA / "annotation.gtf").read().splitlines(keepends=True)
+    random.Random(1).shuffle(lines)
+    path = tmp_path / "shuffled.gtf.gz"
+    with gzip.open(path, "wt") as out:
+        out.write("\n".join(lines[:10]) + "\n\n" + "".join(lines[10:]))
+    assert graph.parse_gtf(path) == transcripts
+
+
+def test_a_transcript_id_used_twice_is_refused(tmp_path):
+    lines = open(DATA / "annotation.gtf").read().splitlines(keepends=True)
+    first = next(l for l in lines if l.split("\t")[2] == "transcript")
+    path = tmp_path / "twice.gtf"
+    path.write_text("".join(lines) + first.replace(first.split("\t")[0], "chrY", 1))
+    with pytest.raises(ValueError, match="more than once"):
+        graph.parse_gtf(path)
+
+
+def test_an_exon_without_its_transcript_line_is_refused(tmp_path):
+    lines = open(DATA / "annotation.gtf").read().splitlines(keepends=True)
+    tid = next(l for l in lines if l.split("\t")[2] == "transcript").split('transcript_id "')[1].split('"')[0]
+    path = tmp_path / "orphan.gtf"
+    path.write_text("".join(l for l in lines if not (l.split("\t")[2] == "transcript" and f'"{tid}"' in l)))
+    with pytest.raises(ValueError, match="without a transcript line"):
+        graph.parse_gtf(path)

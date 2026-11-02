@@ -47,8 +47,10 @@ def test_event_reproduces_the_reference_peptide(case_index, cases, events, grove
     assert effect.outcome == "mutated"
     assert effect.frameshift == case["frameshift"]
     assert effect.wt_protein == ensembl[tx["transcript_id"]]
-    assert case["reference_peptide"] in effect.mt_protein
-    assert effect.mt_protein[:effect.var_start] == effect.wt_protein[:effect.var_start]
+    # the reference peptide lies at the change: it covers the first changed residue
+    at = effect.mt_protein.find(case["reference_peptide"])
+    assert at >= 0
+    assert at <= effect.var_start < at + len(case["reference_peptide"])
 
 
 def test_frameshift_is_only_reported_where_the_protein_changes(events, grove, fetch):
@@ -93,3 +95,38 @@ def test_a_retained_intron_counts_as_annotated_only_where_an_exon_spans_it():
     split = [(50, 200), (300, 450)]
     assert splicing.locate(spans, retained, spliced) == (0, 0)
     assert splicing.locate(split, retained, spliced) is None
+
+
+def event(*isoforms):
+    return splicing.Event("e.1", "test", "chr1", "+", "G", tuple(isoforms), None)
+
+
+def test_an_isoform_counts_as_annotated_whatever_its_outer_exons_reach():
+    # alternative 5' site: a uses the donor at 200, b the one at 150
+    a = [(100, 200), (300, 400)]
+    b = [(100, 150), (300, 400)]
+    t1 = [(180, 200), (300, 400), (500, 600)]    # holds a, but starts past b's donor
+    t2 = [(50, 150), (300, 400), (500, 600)]     # holds b
+    assert splicing.source_and_target(event(a, b), [t1, t2]) == (None, "annotated")
+    assert splicing.source_and_target(event(a, b), [t1]) == ((a, b), None)
+    # t1 holds a, but its exon can't be rebuilt to b's donor at 150
+    assert splicing.locate(t1, a, b) is None
+
+
+def test_an_event_no_transcript_holds_is_both_novel():
+    a = [(100, 200), (300, 400)]
+    b = [(100, 250), (300, 400)]
+    assert splicing.source_and_target(event(a, b), [[(100, 180), (300, 400)]]) == (None, "both novel")
+
+
+def test_isoforms_with_different_limits_are_refused():
+    a = [(100, 200), (300, 400)]
+    b = [(100, 200), (300, 450)]
+    assert splicing.source_and_target(event(a, [(100, 150), (300, 450)]), [a]) == (None, "isoform limits differ")
+
+
+def test_reading_events_from_a_directory_without_them_fails(tmp_path):
+    with pytest.raises(FileNotFoundError):
+        splicing.read_events(tmp_path, 3)
+    with pytest.raises(FileNotFoundError):
+        splicing.read_events(DATA / "spladder", 2)

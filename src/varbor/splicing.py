@@ -37,12 +37,13 @@ def read_events(spladder_dir, confidence):
     The GFF3 gives each event's two isoforms; the txt row with the same
     event id is kept whole in `row`, for read support.
     """
-    out = []
+    out, found = [], False
     for cls in CLASSES:
         stem = Path(spladder_dir, f"merge_graphs_{cls}_C{confidence}.confirmed")
         gff = Path(f"{stem}.gff3")
         if not gff.exists():
             continue
+        found = True
         rows = {}
         txt = Path(f"{stem}.txt.gz")
         if txt.exists():
@@ -52,6 +53,10 @@ def read_events(spladder_dir, confidence):
                     r = dict(zip(header, line.rstrip("\n").split("\t")))
                     rows[r["event_id"]] = r
         out.extend(parse_gff(gff, cls, rows))
+    # no file matched: a wrong directory or confidence level must not look
+    # like a sample without splicing events
+    if not found:
+        raise FileNotFoundError(f"{spladder_dir}: no merge_graphs_*_C{confidence}.confirmed.gff3")
     return out
 
 
@@ -80,9 +85,9 @@ def source_and_target(event, tx_exons):
     """(source, target) exon lists, or (None, reason) when the event can't be applied.
 
     `tx_exons` are the exon lists of the transcripts overlapping the event, on
-    its strand. An isoform is annotated when one of them carries it, judged by
-    the same test that applies the event. Counting introns alone is not enough:
-    a retained intron has none, yet the annotation may lack the exon spanning it.
+    its strand. An isoform is annotated when one of them carries it. Counting
+    introns alone is not enough: a retained intron has none, yet the annotation
+    may lack the exon spanning it.
     The source is the annotated isoform, the target the other one. An event
     whose isoforms are both annotated is a switch between annotated isoforms,
     whose peptides are self.
@@ -90,8 +95,8 @@ def source_and_target(event, tx_exons):
     if len(event.isoforms) != 2:
         return None, "not two isoforms"
     a, b = event.isoforms
-    a_known = any(locate(ex, a, b) for ex in tx_exons)
-    b_known = any(locate(ex, b, a) for ex in tx_exons)
+    a_known = any(carries(ex, a, b) for ex in tx_exons)
+    b_known = any(carries(ex, b, a) for ex in tx_exons)
     if a_known and b_known:
         return None, "annotated"
     if not (a_known or b_known):
@@ -102,31 +107,42 @@ def source_and_target(event, tx_exons):
     return (source, target), None
 
 
-def locate(tx_exons, source, target):
-    """(first, last) indices of the transcript exons carrying the source, or None.
+def carries(tx_exons, isoform, other):
+    """(first, last) indices of the transcript exons holding the isoform, or None.
 
-    The transcript's outer exons must still reach the target's boundaries, so
-    that the exons rebuilt from them are not inverted.
+    The isoform's inner structure must appear consecutively: its first exon's
+    end, its inner exons and its last exon's start. Its outer ends are only the
+    limits of the event. An isoform of one exon has no inner structure; it is
+    held by an exon spanning the intron the other isoform splices out.
     """
-    n = len(source)
-    if n == 1:
-        # the target splices a new intron out of this exon
+    if len(isoform) == 1:
         for i, (start, end) in enumerate(tx_exons):
-            if start <= target[0][1] and end >= target[-1][0]:
+            if start <= other[0][1] and end >= other[-1][0]:
                 return i, i
         return None
-    for i, (start, end) in enumerate(tx_exons):
-        if end != source[0][1]:
+    for i, (_, end) in enumerate(tx_exons):
+        if end != isoform[0][1]:
             continue
-        j = i + n - 1
-        if j >= len(tx_exons) or tx_exons[i + 1:j] != source[1:-1]:
-            return None
-        if start > target[0][1] or tx_exons[j][1] < target[-1][0]:
-            return None
-        if tx_exons[j][0] == source[-1][0]:
+        j = i + len(isoform) - 1
+        if j < len(tx_exons) and tx_exons[i + 1:j] == isoform[1:-1] and tx_exons[j][0] == isoform[-1][0]:
             return i, j
         return None
     return None
+
+
+def locate(tx_exons, source, target):
+    """(first, last) indices of the transcript exons carrying the source, or None.
+
+    Beyond carrying the source, the transcript's outer exons must reach the
+    target's boundaries, so that the exons rebuilt from them are not inverted.
+    """
+    span = carries(tx_exons, source, target)
+    if span is None:
+        return None
+    i, j = span
+    if tx_exons[i][0] > target[0][1] or tx_exons[j][1] < target[-1][0]:
+        return None
+    return span
 
 
 def apply(tx_exons, span, target):

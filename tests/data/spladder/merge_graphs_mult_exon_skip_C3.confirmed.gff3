@@ -1,0 +1,19 @@
+##gff-version 3
+chr19	mult_exon_skip	gene	58387289	58394595	.	+	.	ID=mult_exon_skip.5741;GeneName="ENSG00000083845";HasNovelJunction="Y"
+chr19	mult_exon_skip	mRNA	58387289	58394595	.	+	.	ID=mult_exon_skip.5741_iso1;Parent=mult_exon_skip.5741;GeneName="ENSG00000083845";HasNovelJunction="Y"
+chr19	mult_exon_skip	exon	58387289	58388245	.	+	.	Parent=mult_exon_skip.5741_iso1
+chr19	mult_exon_skip	exon	58394497	58394595	.	+	.	Parent=mult_exon_skip.5741_iso1
+chr19	mult_exon_skip	mRNA	58387289	58394595	.	+	.	ID=mult_exon_skip.5741_iso2;Parent=mult_exon_skip.5741;GeneName="ENSG00000083845";HasNovelJunction="N"
+chr19	mult_exon_skip	exon	58387289	58388245	.	+	.	Parent=mult_exon_skip.5741_iso2
+chr19	mult_exon_skip	exon	58392976	58393185	.	+	.	Parent=mult_exon_skip.5741_iso2
+chr19	mult_exon_skip	exon	58393359	58393487	.	+	.	Parent=mult_exon_skip.5741_iso2
+chr19	mult_exon_skip	exon	58394497	58394595	.	+	.	Parent=mult_exon_skip.5741_iso2
+chr22	mult_exon_skip	gene	19177120	19178240	.	-	.	ID=mult_exon_skip.7644;GeneName="ENSG00000100075";HasNovelJunction="Y"
+chr22	mult_exon_skip	mRNA	19177120	19178240	.	-	.	ID=mult_exon_skip.7644_iso1;Parent=mult_exon_skip.7644;GeneName="ENSG00000100075";HasNovelJunction="Y"
+chr22	mult_exon_skip	exon	19177120	19177204	.	-	.	Parent=mult_exon_skip.7644_iso1
+chr22	mult_exon_skip	exon	19178133	19178240	.	-	.	Parent=mult_exon_skip.7644_iso1
+chr22	mult_exon_skip	mRNA	19177120	19178240	.	-	.	ID=mult_exon_skip.7644_iso2;Parent=mult_exon_skip.7644;GeneName="ENSG00000100075";HasNovelJunction="N"
+chr22	mult_exon_skip	exon	19177120	19177204	.	-	.	Parent=mult_exon_skip.7644_iso2
+chr22	mult_exon_skip	exon	19177727	19177865	.	-	.	Parent=mult_exon_skip.7644_iso2
+chr22	mult_exon_skip	exon	19177942	19178041	.	-	.	Parent=mult_exon_skip.7644_iso2
+chr22	mult_exon_skip	exon	19178133	19178240	.	-	.	Parent=mult_exon_skip.7644_iso2

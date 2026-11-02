@@ -1,0 +1,25 @@
+##gff-version 3
+chr16	intron_retention	gene	681793	682193	.	+	.	ID=intron_retention.10099;GeneName="ENSG00000103266";HasNovelJunction="N"
+chr16	intron_retention	mRNA	681793	682193	.	+	.	ID=intron_retention.10099_iso1;Parent=intron_retention.10099;GeneName="ENSG00000103266";HasNovelJunction="N"
+chr16	intron_retention	exon	681793	682076	.	+	.	Parent=intron_retention.10099_iso1
+chr16	intron_retention	exon	682165	682193	.	+	.	Parent=intron_retention.10099_iso1
+chr16	intron_retention	mRNA	681793	682193	.	+	.	ID=intron_retention.10099_iso2;Parent=intron_retention.10099;GeneName="ENSG00000103266";HasNovelJunction="N"
+chr16	intron_retention	exon	681793	682193	.	+	.	Parent=intron_retention.10099_iso2
+chr2	intron_retention	gene	27377724	27378371	.	-	.	ID=intron_retention.17729;GeneName="ENSG00000163795";HasNovelJunction="Y"
+chr2	intron_retention	mRNA	27377724	27378371	.	-	.	ID=intron_retention.17729_iso1;Parent=intron_retention.17729;GeneName="ENSG00000163795";HasNovelJunction="Y"
+chr2	intron_retention	exon	27377724	27378030	.	-	.	Parent=intron_retention.17729_iso1
+chr2	intron_retention	exon	27378195	27378371	.	-	.	Parent=intron_retention.17729_iso1
+chr2	intron_retention	mRNA	27377724	27378371	.	-	.	ID=intron_retention.17729_iso2;Parent=intron_retention.17729;GeneName="ENSG00000163795";HasNovelJunction="N"
+chr2	intron_retention	exon	27377724	27378371	.	-	.	Parent=intron_retention.17729_iso2
+chr2	intron_retention	gene	74505046	74505610	.	-	.	ID=intron_retention.17967;GeneName="ENSG00000115289";HasNovelJunction="N"
+chr2	intron_retention	mRNA	74505046	74505610	.	-	.	ID=intron_retention.17967_iso1;Parent=intron_retention.17967;GeneName="ENSG00000115289";HasNovelJunction="N"
+chr2	intron_retention	exon	74505046	74505419	.	-	.	Parent=intron_retention.17967_iso1
+chr2	intron_retention	exon	74505552	74505610	.	-	.	Parent=intron_retention.17967_iso1
+chr2	intron_retention	mRNA	74505046	74505610	.	-	.	ID=intron_retention.17967_iso2;Parent=intron_retention.17967;GeneName="ENSG00000115289";HasNovelJunction="N"
+chr2	intron_retention	exon	74505046	74505610	.	-	.	Parent=intron_retention.17967_iso2
+chrX	intron_retention	gene	101552809	101554700	.	+	.	ID=intron_retention.28540;GeneName="ENSG00000126947";HasNovelJunction="Y"
+chrX	intron_retention	mRNA	101552809	101554700	.	+	.	ID=intron_retention.28540_iso1;Parent=intron_retention.28540;GeneName="ENSG00000126947";HasNovelJunction="Y"
+chrX	intron_retention	exon	101552809	101553167	.	+	.	Parent=intron_retention.28540_iso1
+chrX	intron_retention	exon	101553922	101554700	.	+	.	Parent=intron_retention.28540_iso1
+chrX	intron_retention	mRNA	101552809	101554700	.	+	.	ID=intron_retention.28540_iso2;Parent=intron_retention.28540;GeneName="ENSG00000126947";HasNovelJunction="N"
+chrX	intron_retention	exon	101552809	101554700	.	+	.	Parent=intron_retention.28540_iso2

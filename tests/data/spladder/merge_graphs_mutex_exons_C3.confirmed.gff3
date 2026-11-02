@@ -1,0 +1,19 @@
+##gff-version 3
+chr13	mutex_exons	gene	110893028	110906124	.	-	.	ID=mutex_exons.789;GeneName="ENSG00000088448";HasNovelJunction="Y"
+chr13	mutex_exons	mRNA	110893028	110906124	.	-	.	ID=mutex_exons.789_iso1;Parent=mutex_exons.789;GeneName="ENSG00000088448";HasNovelJunction="N"
+chr13	mutex_exons	exon	110893028	110893263	.	-	.	Parent=mutex_exons.789_iso1
+chr13	mutex_exons	exon	110894109	110894202	.	-	.	Parent=mutex_exons.789_iso1
+chr13	mutex_exons	exon	110906033	110906124	.	-	.	Parent=mutex_exons.789_iso1
+chr13	mutex_exons	mRNA	110893028	110906124	.	-	.	ID=mutex_exons.789_iso2;Parent=mutex_exons.789;GeneName="ENSG00000088448";HasNovelJunction="Y"
+chr13	mutex_exons	exon	110893028	110893263	.	-	.	Parent=mutex_exons.789_iso2
+chr13	mutex_exons	exon	110900530	110901077	.	-	.	Parent=mutex_exons.789_iso2
+chr13	mutex_exons	exon	110906033	110906124	.	-	.	Parent=mutex_exons.789_iso2
+chr2	mutex_exons	gene	88182948	88186458	.	+	.	ID=mutex_exons.1505;GeneName="ENSG00000144115";HasNovelJunction="Y"
+chr2	mutex_exons	mRNA	88182948	88186458	.	+	.	ID=mutex_exons.1505_iso1;Parent=mutex_exons.1505;GeneName="ENSG00000144115";HasNovelJunction="N"
+chr2	mutex_exons	exon	88182948	88183073	.	+	.	Parent=mutex_exons.1505_iso1
+chr2	mutex_exons	exon	88185328	88185479	.	+	.	Parent=mutex_exons.1505_iso1
+chr2	mutex_exons	exon	88185898	88186458	.	+	.	Parent=mutex_exons.1505_iso1
+chr2	mutex_exons	mRNA	88182948	88186458	.	+	.	ID=mutex_exons.1505_iso2;Parent=mutex_exons.1505;GeneName="ENSG00000144115";HasNovelJunction="Y"
+chr2	mutex_exons	exon	88182948	88183073	.	+	.	Parent=mutex_exons.1505_iso2
+chr2	mutex_exons	exon	88185528	88185724	.	+	.	Parent=mutex_exons.1505_iso2
+chr2	mutex_exons	exon	88185898	88186458	.	+	.	Parent=mutex_exons.1505_iso2

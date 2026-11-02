@@ -1,0 +1,15 @@
+##gff-version 3
+chr1	alt_3prime	gene	153534599	153535360	.	-	.	ID=alt_3prime.1548;GeneName="ENSG00000197956";HasNovelJunction="Y"
+chr1	alt_3prime	mRNA	153534599	153535360	.	-	.	ID=alt_3prime.1548_iso1;Parent=alt_3prime.1548;GeneName="ENSG00000197956";HasNovelJunction="Y"
+chr1	alt_3prime	exon	153534599	153534827	.	-	.	Parent=alt_3prime.1548_iso1
+chr1	alt_3prime	exon	153535202	153535360	.	-	.	Parent=alt_3prime.1548_iso1
+chr1	alt_3prime	mRNA	153534599	153535360	.	-	.	ID=alt_3prime.1548_iso2;Parent=alt_3prime.1548;GeneName="ENSG00000197956";HasNovelJunction="N"
+chr1	alt_3prime	exon	153534599	153534830	.	-	.	Parent=alt_3prime.1548_iso2
+chr1	alt_3prime	exon	153535202	153535360	.	-	.	Parent=alt_3prime.1548_iso2
+chr9	alt_3prime	gene	136993580	136993881	.	+	.	ID=alt_3prime.18620;GeneName="ENSG00000148362";HasNovelJunction="Y"
+chr9	alt_3prime	mRNA	136993580	136993881	.	+	.	ID=alt_3prime.18620_iso1;Parent=alt_3prime.18620;GeneName="ENSG00000148362";HasNovelJunction="N"
+chr9	alt_3prime	exon	136993580	136993664	.	+	.	Parent=alt_3prime.18620_iso1
+chr9	alt_3prime	exon	136993770	136993881	.	+	.	Parent=alt_3prime.18620_iso1
+chr9	alt_3prime	mRNA	136993580	136993881	.	+	.	ID=alt_3prime.18620_iso2;Parent=alt_3prime.18620;GeneName="ENSG00000148362";HasNovelJunction="Y"
+chr9	alt_3prime	exon	136993580	136993664	.	+	.	Parent=alt_3prime.18620_iso2
+chr9	alt_3prime	exon	136993766	136993881	.	+	.	Parent=alt_3prime.18620_iso2

@@ -24,10 +24,9 @@ ATTRIBUTE = re.compile(r'(\S+) "([^"]*)"')
 def parse_gtf(path):
     """Transcripts of a GTF: {transcript_id: record}, exons sorted genomically.
 
-    A record holds chrom, strand, the 0-based closed span, gene and biotype
-    fields, the exons, the CDS start (the first coding base in transcript
-    orientation, 0-based) with that codon's frame, and whether the CDS start
-    or end is incomplete.
+    A record holds chrom, strand, the 0-based closed span, gene id and name,
+    the exons, the CDS start (the first coding base in transcript orientation,
+    0-based) with that codon's frame, and whether the CDS start is incomplete.
     """
     tx = {}
     cds = collections.defaultdict(list)
@@ -51,9 +50,7 @@ def parse_gtf(path):
                 "end": end,
                 "gene_id": attrs["gene_id"][0],
                 "gene_name": (attrs.get("gene_name") or [None])[0],
-                "biotype": (attrs.get("transcript_biotype") or [None])[0],
                 "cds_start_nf": "cds_start_NF" in attrs.get("tag", []),
-                "cds_end_nf": "cds_end_NF" in attrs.get("tag", []),
                 "exons": [],
             }
         elif f[2] == "exon":

@@ -76,11 +76,6 @@ def parse_gff(path, cls, rows):
         yield Event(event_id, cls, chrom, strand, gene_id, tuple(isos), rows.get(event_id))
 
 
-def introns(exons):
-    """The gaps between consecutive exons, as (start, end)."""
-    return [(a[1] + 1, b[0] - 1) for a, b in zip(exons, exons[1:])]
-
-
 def source_and_target(event, tx_exons):
     """(source, target) exon lists, or (None, reason) when the event can't be applied.
 
@@ -144,24 +139,27 @@ def apply(tx_exons, span, target):
 
 
 def effect(fetch, tx, tx_exons, source, target):
-    """The event's effect on one transcript, or None if it doesn't carry the source."""
+    """The event's effect on one transcript, or None if it doesn't carry the source.
+
+    `frameshift` is set only when the change reaches the protein, as a mutated
+    or truncated product; it is None for a noncoding transcript, a lost CDS
+    start or a change confined to a UTR. Once it reaches the protein, the frame
+    downstream shifts by the whole change in transcript length.
+    """
     span = locate(tx_exons, source, target)
     if span is None:
         return None
     exons = apply(tx_exons, span, target)
-    frameshift = (sum(e - s + 1 for s, e in exons)
-                  - sum(e - s + 1 for s, e in tx_exons)) % 3 != 0
     if tx["cds_start"] is None:
-        return Effect("noncoding", frameshift, exons, None, None, None, None, None)
+        return Effect("noncoding", None, exons, None, None, None, None, None)
     wt, _, _ = protein(fetch, tx, tx_exons)
     mt, seq, offset = protein(fetch, tx, exons)
     if mt is None:
-        return Effect("cds start lost", frameshift, exons, seq, None, wt, None, None)
+        return Effect("cds start lost", None, exons, seq, None, wt, None, None)
     var_start = len(os.path.commonprefix([wt, mt]))
     if mt == wt:
-        outcome = "unchanged"
-    elif var_start == len(mt):
-        outcome = "truncated wt"
-    else:
-        outcome = "mutated"
+        return Effect("unchanged", None, exons, seq, offset, wt, mt, var_start)
+    outcome = "truncated wt" if var_start == len(mt) else "mutated"
+    frameshift = (sum(e - s + 1 for s, e in exons)
+                  - sum(e - s + 1 for s, e in tx_exons)) % 3 != 0
     return Effect(outcome, frameshift, exons, seq, offset, wt, mt, var_start)

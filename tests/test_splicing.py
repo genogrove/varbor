@@ -51,6 +51,24 @@ def test_event_reproduces_the_reference_peptide(case_index, cases, events, grove
     assert effect.mt_protein[:effect.var_start] == effect.wt_protein[:effect.var_start]
 
 
+def test_frameshift_is_only_reported_where_the_protein_changes(events, grove, fetch):
+    outcomes = set()
+    for event in events.values():
+        cands = candidates(grove, event)
+        pair, _ = splicing.source_and_target(event, [ex for _, ex in cands])
+        for tx, tx_exons in cands:
+            effect = splicing.effect(fetch, tx, tx_exons, *pair)
+            if effect is None:
+                continue
+            outcomes.add(effect.outcome)
+            if effect.outcome in ("mutated", "truncated wt"):
+                assert effect.frameshift in (True, False)
+            else:
+                assert effect.frameshift is None, (event.event_id, tx["transcript_id"], effect.outcome)
+    # the fixtures hold both kinds, so neither branch is checked vacuously
+    assert "mutated" in outcomes and outcomes - {"mutated", "truncated wt"}
+
+
 def test_applying_keeps_the_transcripts_outer_ends():
     # an exon skip whose isoforms reach less far than the transcript's exons
     tx = [(100, 200), (300, 400), (500, 600)]

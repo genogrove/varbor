@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "varbor"
+version = "0.1.0.dev0"
+description = "Variant effect prediction using genogrove"
+readme = "README.md"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+dependencies = ["pygenogrove>=0.10"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.urls]
+Repository = "https://github.com/genogrove/varbor"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/varbor"]

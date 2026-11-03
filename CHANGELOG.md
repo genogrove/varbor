@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-03
+
 ### Added
 
 - **Splicing events applied to annotated transcripts**: the annotation is read into a pygenogrove graph of transcripts and shared exons, and SplAdder events of every class are applied with one rule. The isoform an annotated transcript carries is replaced by the one none carries, and the result is translated from the annotated coding start, honouring the CDS phase and the mitochondrial code. ([#1](https://github.com/genogrove/varbor/pull/1))

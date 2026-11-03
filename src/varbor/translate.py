@@ -45,6 +45,15 @@ def translate(seq, chrom):
     return aa.split("*")[0]
 
 
+def stop_codon(seq, start, chrom):
+    """mRNA index of the first in-frame stop codon from `start`, or None if there is none."""
+    code = MITOCHONDRIAL if chrom in ("chrMT", "MT", "chrM") else STANDARD
+    for i in range(start, len(seq) - 2, 3):
+        if code.get(seq[i:i + 3]) == "*":
+            return i
+    return None
+
+
 def protein(fetch, tx, exons):
     """(protein, mRNA, CDS offset) for the transcript on these exons.
 

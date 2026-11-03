@@ -22,14 +22,15 @@ import gzip
 import os
 from pathlib import Path
 
-from varbor.translate import protein
+from varbor.nmd import nmd
+from varbor.translate import protein, stop_codon
 
 CLASSES = ("exon_skip", "alt_3prime", "alt_5prime", "intron_retention",
            "mutex_exons", "mult_exon_skip")
 
 Event = collections.namedtuple("Event", "event_id cls chrom strand gene_id isoforms row")
 Effect = collections.namedtuple(
-    "Effect", "outcome frameshift exons mrna cds_offset wt_protein mt_protein var_start")
+    "Effect", "outcome frameshift exons mrna cds_offset wt_protein mt_protein var_start nmd")
 
 def read_events(spladder_dir, confidence):
     """Events of every class from SplAdder's confirmed GFF3 and txt files.
@@ -157,25 +158,28 @@ def apply(tx_exons, span, target):
 def effect(fetch, tx, tx_exons, source, target):
     """The event's effect on one transcript, or None if it doesn't carry the source.
 
-    `frameshift` is set only when the change reaches the protein, as a mutated
-    or truncated product; it is None for a noncoding transcript, a lost CDS
-    start or a change confined to a UTR. Once it reaches the protein, the frame
-    downstream shifts by the whole change in transcript length.
+    `frameshift` and `nmd` are set only when the change reaches the protein, as
+    a mutated or truncated product; they are None for a noncoding transcript, a
+    lost CDS start or a change confined to a UTR. Once it reaches the protein,
+    the frame downstream shifts by the whole change in transcript length, and
+    decay is judged on the changed exon structure.
     """
     span = locate(tx_exons, source, target)
     if span is None:
         return None
     exons = apply(tx_exons, span, target)
     if tx["cds_start"] is None:
-        return Effect("noncoding", None, exons, None, None, None, None, None)
+        return Effect("noncoding", None, exons, None, None, None, None, None, None)
     wt, _, _ = protein(fetch, tx, tx_exons)
     mt, seq, offset = protein(fetch, tx, exons)
     if mt is None:
-        return Effect("cds start lost", None, exons, seq, None, wt, None, None)
+        return Effect("cds start lost", None, exons, seq, None, wt, None, None, None)
     var_start = len(os.path.commonprefix([wt, mt]))
     if mt == wt:
-        return Effect("unchanged", None, exons, seq, offset, wt, mt, var_start)
+        return Effect("unchanged", None, exons, seq, offset, wt, mt, var_start, None)
     outcome = "truncated wt" if var_start == len(mt) else "mutated"
     frameshift = (sum(e - s + 1 for s, e in exons)
                   - sum(e - s + 1 for s, e in tx_exons)) % 3 != 0
-    return Effect(outcome, frameshift, exons, seq, offset, wt, mt, var_start)
+    stop = stop_codon(seq, offset + tx["cds_frame"], tx["chrom"])
+    decay = None if stop is None else nmd(tx["strand"], exons, stop)
+    return Effect(outcome, frameshift, exons, seq, offset, wt, mt, var_start, decay)

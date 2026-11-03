@@ -12,7 +12,7 @@ Planned variant sources, in order:
 
 ## Status
 
-Under development; no release yet.
+Early development: releases are `0.x`, and the API may change between them. Alternative splicing is supported; the other variant sources follow.
 
 ## License
 

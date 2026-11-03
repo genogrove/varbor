@@ -1,0 +1,134 @@
+{
+ "events": [
+  {
+   "case": "alt_3prime|swap|+",
+   "event_id": "alt_3prime.18620",
+   "class": "alt_3prime",
+   "transcript_id": "ENST00000371620",
+   "frameshift": true,
+   "reference_peptide": "RCPGESLINPGFKRNQLVAWTSMRP"
+  },
+  {
+   "case": "alt_3prime|swap|-",
+   "event_id": "alt_3prime.1548",
+   "class": "alt_3prime",
+   "transcript_id": "ENST00000368719",
+   "frameshift": false,
+   "reference_peptide": "LKELIQKELTIGSLQDAEIARLMEDL"
+  },
+  {
+   "case": "alt_5prime|swap|+",
+   "event_id": "alt_5prime.3622",
+   "class": "alt_5prime",
+   "transcript_id": "ENST00000501597",
+   "frameshift": true,
+   "reference_peptide": "MRAKVSGSW"
+  },
+  {
+   "case": "alt_5prime|swap|-",
+   "event_id": "alt_5prime.830",
+   "class": "alt_5prime",
+   "transcript_id": "ENST00000428771",
+   "frameshift": true,
+   "reference_peptide": "MTVRHLRSLRRVQPRSAPTPPFWASTAPASTSVWRR"
+  },
+  {
+   "case": "exon_skip|insert|+",
+   "event_id": "exon_skip.19270",
+   "class": "exon_skip",
+   "transcript_id": "ENST00000593087",
+   "frameshift": false,
+   "reference_peptide": "VCNDRLGKKVRVKSRMIPSGTLRS"
+  },
+  {
+   "case": "exon_skip|insert|-",
+   "event_id": "exon_skip.12789",
+   "class": "exon_skip",
+   "transcript_id": "ENST00000617122",
+   "frameshift": false,
+   "reference_peptide": "ALGLGVAVGAEAAEM"
+  },
+  {
+   "case": "exon_skip|skip|+",
+   "event_id": "exon_skip.25323",
+   "class": "exon_skip",
+   "transcript_id": "ENST00000343986",
+   "frameshift": false,
+   "reference_peptide": "AKDHASIQMNVAEGESDDSILRLAKA"
+  },
+  {
+   "case": "exon_skip|skip|-",
+   "event_id": "exon_skip.26807",
+   "class": "exon_skip",
+   "transcript_id": "ENST00000292778",
+   "frameshift": true,
+   "reference_peptide": "GAATESAAELARRCGRSSRPN"
+  },
+  {
+   "case": "intron_retention|insert|+",
+   "event_id": "intron_retention.28540",
+   "class": "intron_retention",
+   "transcript_id": "ENST00000372829",
+   "frameshift": true,
+   "reference_peptide": "GAKLQGDSEVKPETFLLCYSWEITSPRYRL"
+  },
+  {
+   "case": "intron_retention|insert|-",
+   "event_id": "intron_retention.17729",
+   "class": "intron_retention",
+   "transcript_id": "ENST00000407879",
+   "frameshift": true,
+   "reference_peptide": "PWTCRGCGQELEEDTQW"
+  },
+  {
+   "case": "intron_retention|skip|+",
+   "event_id": "intron_retention.10099",
+   "class": "intron_retention",
+   "transcript_id": "ENST00000565677",
+   "frameshift": true,
+   "reference_peptide": "MDELFSQVDEKRKVSVCRLLPMAGRCSCSAPFQPLTVCPCATEARHPRLPVWQDQL"
+  },
+  {
+   "case": "intron_retention|skip|-",
+   "event_id": "intron_retention.17967",
+   "class": "intron_retention",
+   "transcript_id": "ENST00000233630",
+   "frameshift": false,
+   "reference_peptide": "RVLCHRLMLNPQHVSSPTVGFLRGRRG"
+  },
+  {
+   "case": "mult_exon_skip|skip|+",
+   "event_id": "mult_exon_skip.5741",
+   "class": "mult_exon_skip",
+   "transcript_id": "ENST00000601521",
+   "frameshift": false,
+   "reference_peptide": "STDDVQINDISLQAIWLLCTGAREAA"
+  },
+  {
+   "case": "mult_exon_skip|skip|-",
+   "event_id": "mult_exon_skip.7644",
+   "class": "mult_exon_skip",
+   "transcript_id": "ENST00000215882",
+   "frameshift": true,
+   "reference_peptide": "DERSHPPRYRGIGEVHPRPDLPKPQVQRILPRG"
+  },
+  {
+   "case": "mutex_exons|swap|+",
+   "event_id": "mutex_exons.1505",
+   "class": "mutex_exons",
+   "transcript_id": "ENST00000674334",
+   "frameshift": false,
+   "reference_peptide": "TQSVNLPKELHSKGPSSSPSSGRDRTTKKWL"
+  },
+  {
+   "case": "mutex_exons|swap|-",
+   "event_id": "mutex_exons.789",
+   "class": "mutex_exons",
+   "transcript_id": "ENST00000310847",
+   "frameshift": true,
+   "reference_peptide": "CISALVANGAHVENSY"
+  }
+ ],
+ "cds_start_nf": "ENST00000390238",
+ "mitochondrial": "ENST00000361851"
+}

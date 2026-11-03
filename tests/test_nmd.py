@@ -23,7 +23,8 @@ PLUS = [(1000, 1199), (2000, 2099), (3000, 3299)]
 ])
 def test_escape_rules(strand, exons, stop, exon, dist, escape):
     call = nmd(strand, exons, stop)
-    assert (call.exon, call.dist_ejc, call.escape, call.triggers) == (exon, dist, escape, escape is None)
+    status = "decay" if escape is None else "escape"
+    assert (call.status, call.exon, call.dist_ejc, call.escape) == (status, exon, dist, escape)
 
 
 def test_a_single_exon_transcript_escapes():
@@ -34,6 +35,10 @@ def test_a_two_exon_transcript_checks_exon_1_as_penultimate():
     # exon 1 is also the penultimate exon, so a stop near its 3' end escapes by rule 3
     assert nmd("+", [(1000, 1299), (2000, 2299)], 260).escape == 3
     assert nmd("+", [(1000, 1299), (2000, 2299)], 200).escape is None
+
+
+def test_a_frame_without_a_stop_is_nonstop():
+    assert nmd("+", PLUS, None) == ("nonstop", None, None, None)
 
 
 def test_a_stop_beyond_the_exons_has_no_call():
@@ -66,8 +71,17 @@ def test_stop_codon_lands_on_ensembls_stop(fetch, transcripts):
     assert checked > 50
 
 
-def test_every_case_gets_a_decay_call_on_its_changed_structure(cases, grove, fetch):
+def genomic_positions(strand, exons):
+    """Every exonic genomic position, in transcript order: index i is mRNA position i."""
+    positions = [p for s, e in exons for p in range(s, e + 1)]
+    return positions if strand == "+" else positions[::-1]
+
+
+def test_every_case_is_judged_on_its_changed_structure(cases, grove, fetch):
+    """The stop is placed in the genome independently, base by base, and the
+    changed exon holding it must be the one the call names."""
     events = {e.event_id: e for e in splicing.read_events(DATA / "spladder", 3)}
+    judged = 0
     for case in cases["events"]:
         event = events[case["event_id"]]
         lo = min(iso[0][0] for iso in event.isoforms)
@@ -78,7 +92,13 @@ def test_every_case_gets_a_decay_call_on_its_changed_structure(cases, grove, fet
         effect = splicing.effect(fetch, tx, ex, source, target)
         stop = translate.stop_codon(effect.mrna, effect.cds_offset + tx["cds_frame"], tx["chrom"])
         if stop is None:
-            assert effect.nmd is None
+            assert effect.nmd.status == "nonstop", case["case"]
             continue
-        assert effect.nmd is not None
-        assert 1 <= effect.nmd.exon <= len(effect.exons)
+        assert effect.nmd.status in ("decay", "escape"), case["case"]
+        where = genomic_positions(tx["strand"], effect.exons)[stop]
+        ordered = effect.exons if tx["strand"] == "+" else effect.exons[::-1]
+        number, (s, e) = next((n, x) for n, x in enumerate(ordered, 1) if x[0] <= where <= x[1])
+        assert effect.nmd.exon == number, case["case"]
+        assert effect.nmd.dist_ejc == (e - where if tx["strand"] == "+" else where - s), case["case"]
+        judged += 1
+    assert judged >= 12

@@ -160,7 +160,8 @@ def effect(fetch, tx, tx_exons, source, target):
 
     `frameshift` and `nmd` are set only when the change reaches the protein, as
     a mutated or truncated product; they are None for a noncoding transcript, a
-    lost CDS start or a change confined to a UTR. Once it reaches the protein,
+    lost CDS start or a change confined to a UTR. A product whose reading frame
+    meets no stop codon gets the "nonstop" decay status. Once it reaches the protein,
     the frame downstream shifts by the whole change in transcript length, and
     decay is judged on the changed exon structure.
     """
@@ -181,5 +182,5 @@ def effect(fetch, tx, tx_exons, source, target):
     frameshift = (sum(e - s + 1 for s, e in exons)
                   - sum(e - s + 1 for s, e in tx_exons)) % 3 != 0
     stop = stop_codon(seq, offset + tx["cds_frame"], tx["chrom"])
-    decay = None if stop is None else nmd(tx["strand"], exons, stop)
+    decay = nmd(tx["strand"], exons, stop)
     return Effect(outcome, frameshift, exons, seq, offset, wt, mt, var_start, decay)

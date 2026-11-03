@@ -11,21 +11,27 @@ downstream of it to leave an exon junction complex behind:
   3  the stop lies in the penultimate exon, within 50 nt of the last junction;
   4  the stop lies in the last exon.
 
-Otherwise the transcript is a decay target.
+Otherwise the transcript is a decay target. A transcript whose reading frame
+meets no stop codon at all is a non-stop decay target, a different surveillance
+pathway, and is reported as such rather than judged by these rules.
 """
 
 import collections
 
-NMD = collections.namedtuple("NMD", "exon dist_ejc escape triggers")
+NMD = collections.namedtuple("NMD", "status exon dist_ejc escape")
 
 
 def nmd(strand, exons, stop):
-    """Decay call for a stop codon starting at mRNA index `stop`, or None if no exon holds it.
+    """Decay call for a stop codon starting at mRNA index `stop`.
 
-    `exon` is the 1-based exon number in transcript order, `dist_ejc` the number of
-    bases from the stop to its exon's 3' end, `escape` the rule that lets it
-    escape (None if none does), and `triggers` whether decay is expected.
+    `status` is "decay", "escape" or "nonstop", the last when `stop` is None
+    because the reading frame meets no stop codon. `exon` is the 1-based exon
+    number in transcript order, `dist_ejc` the number of bases from the stop to
+    its exon's 3' end, and `escape` the rule that lets it escape; all three are
+    None for a non-stop transcript. Returns None if no exon holds `stop`.
     """
+    if stop is None:
+        return NMD("nonstop", None, None, None)
     lengths = [e - s + 1 for s, e in (exons if strand == "+" else exons[::-1])]
     start = 0
     for number, length in enumerate(lengths, 1):
@@ -49,4 +55,4 @@ def nmd(strand, exons, stop):
                 escape = 3
         elif number == last:
             escape = 4
-    return NMD(number, dist_ejc, escape, escape is None)
+    return NMD("decay" if escape is None else "escape", number, dist_ejc, escape)

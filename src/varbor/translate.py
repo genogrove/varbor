@@ -39,15 +39,19 @@ def mrna_offset(strand, exons, pos):
     return None
 
 
+def genetic_code(chrom):
+    return MITOCHONDRIAL if chrom in ("chrMT", "MT", "chrM") else STANDARD
+
+
 def translate(seq, chrom):
-    code = MITOCHONDRIAL if chrom in ("chrMT", "MT", "chrM") else STANDARD
+    code = genetic_code(chrom)
     aa = "".join(code.get(seq[i:i + 3], "X") for i in range(0, len(seq) - 2, 3))
     return aa.split("*")[0]
 
 
 def stop_codon(seq, start, chrom):
     """mRNA index of the first in-frame stop codon from `start`, or None if there is none."""
-    code = MITOCHONDRIAL if chrom in ("chrMT", "MT", "chrM") else STANDARD
+    code = genetic_code(chrom)
     for i in range(start, len(seq) - 2, 3):
         if code.get(seq[i:i + 3]) == "*":
             return i

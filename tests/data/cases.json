@@ -130,5 +130,7 @@
   }
  ],
  "cds_start_nf": "ENST00000390238",
- "mitochondrial": "ENST00000361851"
+ "mitochondrial": "ENST00000361851",
+ "non_aug_start": "ENST00000400999",
+ "no_stop_codon": "ENST00000308647"
 }

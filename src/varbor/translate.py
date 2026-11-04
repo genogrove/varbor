@@ -64,11 +64,21 @@ def protein(fetch, tx, exons):
     The protein runs from the annotated CDS start to the first stop codon, read
     on into the 3' UTR if the coding sequence changed. It is None when the
     exons no longer hold the CDS start.
+
+    A full start codon is translated as methionine whatever its sequence: the
+    initiator tRNA reads CUG or GUG starts as Met. Where the annotation gives no
+    stop codon after the CDS, what follows its end is unknown, so translation
+    ends there instead, unless the exons no longer hold that end.
     """
     seq = mrna(fetch, tx["chrom"], tx["strand"], exons)
     offset = mrna_offset(tx["strand"], exons, tx["cds_start"])
     if offset is None:
         return None, seq, None
-    return translate(seq[offset + tx["cds_frame"]:], tx["chrom"]), seq, offset
+    start = offset + tx["cds_frame"]
+    end = None if tx["stop_codon"] else mrna_offset(tx["strand"], exons, tx["cds_end"])
+    aa = translate(seq[start:] if end is None else seq[start:end + 1], tx["chrom"])
+    if tx["start_complete"] and aa:
+        aa = "M" + aa[1:]
+    return aa, seq, offset
 
 

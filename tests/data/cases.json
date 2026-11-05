@@ -133,5 +133,7 @@
  "mitochondrial": "ENST00000361851",
  "non_aug_start": "ENST00000400999",
  "no_stop_codon": "ENST00000308647",
- "frameshift_read_on": "ENST00000530097"
+ "frameshift_read_on": "ENST00000530097",
+ "no_start_codon_row": "ENST00000506618",
+ "split_start_codon": "ENST00000481878"
 }

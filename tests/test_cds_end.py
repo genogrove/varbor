@@ -2,7 +2,8 @@
 
 Events are built on each transcript's own exons by moving one exon's start:
 - ENST00000308647 (+): 3 nt inside the CDS keeps the frame; 1 nt in a 3' UTR
-  exon changes no protein;
+  exon, or 10 nt spliced out of the 5' UTR, changes no protein; an exon ending
+  before the CDS end loses it;
 - ENST00000530097 (-): moving its second exon's start by 1 nt shifts the frame,
   which then meets its first stop past the annotated CDS end.
 """
@@ -57,13 +58,17 @@ def test_a_change_in_the_3prime_utr_leaves_the_protein_unchanged(no_stop, fetch)
 
 
 def test_a_changed_start_codon_is_read_literally(fetch, transcripts, cases):
-    r = transcripts[cases["non_aug_start"]]
-    as_annotated, seq, offset = translate.protein(fetch, r, r["exons"])
-    codon = seq[offset + r["cds_frame"]:offset + r["cds_frame"] + 3]
-    assert as_annotated[0] == "M"
-    # the same exons, told the annotated start codon was another one
-    changed, _, _ = translate.protein(fetch, r, r["exons"], initiator="ATG")
-    assert changed[0] == translate.translate(codon, r["chrom"]) != "M"
+    r = transcripts[cases["split_start_codon"]]
+    assert r["strand"] == "-" and r["start_complete"]
+    k = next(i for i, (s, e) in enumerate(r["exons"]) if s <= r["cds_start"] <= e)
+    exon, before = r["exons"][k], r["exons"][k - 1]
+    assert r["cds_start"] - exon[0] < 2
+    # the start codon spans this junction; moving the exon's start by 1 nt
+    # keeps the CDS start but changes the codon
+    effect = splicing.effect(fetch, r, r["exons"], [before, exon], [before, (exon[0] + 1, exon[1])])
+    start = effect.cds_offset + r["cds_frame"]
+    assert effect.wt_protein[0] == "M"
+    assert effect.mt_protein[0] == translate.translate(effect.mrna[start:start + 3], r["chrom"]) != "M"
 
 
 def test_a_record_from_an_older_graph_is_refused(fetch, transcripts, cases):
@@ -71,3 +76,29 @@ def test_a_record_from_an_older_graph_is_refused(fetch, transcripts, cases):
     del r["stop_codon"]
     with pytest.raises(ValueError, match="rebuild"):
         translate.protein(fetch, r, r["exons"])
+
+
+def test_a_change_in_the_5prime_utr_leaves_the_protein_unchanged(no_stop, fetch):
+    r, _ = no_stop
+    first = r["exons"][0]
+    assert first[0] < r["cds_start"] - 84
+    # splicing 10 nt out of the 5' UTR moves the CDS start and end together
+    source = [first]
+    target = [(first[0], r["cds_start"] - 84), (r["cds_start"] - 73, first[1])]
+    effect = splicing.effect(fetch, r, r["exons"], source, target)
+    assert effect.outcome == "unchanged"
+
+
+def test_a_mutant_that_loses_the_cds_end_reads_on_to_its_first_stop(no_stop, fetch):
+    r, _ = no_stop
+    k = next(i for i, (s, e) in enumerate(r["exons"]) if s <= r["cds_end"] <= e)
+    exon, after = r["exons"][k], r["exons"][k + 1]
+    # the exon now ends 5 nt before the CDS end
+    effect = splicing.effect(fetch, r, r["exons"], [exon, after],
+                             [(exon[0], r["cds_end"] - 5), after])
+    assert effect.outcome == "mutated"
+    start = effect.cds_offset + r["cds_frame"]
+    stop = translate.stop_codon(effect.mrna, start, r["chrom"])
+    assert stop is not None
+    assert effect.mt_protein == translate.translate(effect.mrna[start:stop], r["chrom"])
+    assert effect.nmd.status == "decay"

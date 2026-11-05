@@ -2,8 +2,8 @@
 
 - annotation.gtf: Ensembl 111 rows (transcript, exon, CDS, start_codon,
   stop_codon) of every transcript the test events overlap, plus an
-  incomplete-CDS, a mitochondrial, a non-AUG-start and two no-stop-codon
-  transcripts.
+  incomplete-CDS, a mitochondrial, two non-AUG-start, a split-start-codon and
+  two no-stop-codon transcripts.
 - spladder/: SplAdder confirmed events (GFF3 and txt) from a TESLA tumor sample.
 - genome_slices.fa: GRCh38 bases covering those transcripts, named
   chrom:start-end (0-based, both ends inclusive).

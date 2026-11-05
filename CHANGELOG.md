@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Start and end translated the way the annotation defines them**: a full start codon reads as `M` whatever its sequence, unless an event changes it, and without a `stop_codon` row translation ends at the annotated CDS end. A mutant still in frame there gets the new decay status `unknown`, because its stop is not known; a mutant whose frame shifts reads on to its first stop. Graphs built by v0.2.0 lack the new fields and must be rebuilt. ([#7](https://github.com/genogrove/varbor/pull/7))
+
 ## [0.2.0] - 2026-11-03
 
 ### Added

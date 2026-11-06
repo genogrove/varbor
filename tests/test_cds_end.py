@@ -1,7 +1,8 @@
 """Mutants of a transcript whose annotation gives no stop codon after the CDS.
 
 Events are built on each transcript's own exons by moving one exon's start:
-- ENST00000308647 (+): 3 nt inside the CDS keeps the frame; 1 nt in a 3' UTR
+- ENST00000308647 (+): 3 nt inside the CDS keeps the frame, and 6 intron nt
+  kept after a donor bring a stop codon before the CDS end; 1 nt in a 3' UTR
   exon, or 10 nt spliced out of the 5' UTR, changes no protein; an exon ending
   before the CDS end loses it;
 - ENST00000530097 (-): moving its second exon's start by 1 nt shifts the frame,
@@ -36,6 +37,18 @@ def test_an_inframe_mutant_ends_at_the_cds_end_with_an_unknown_decay_call(no_sto
     # one codon fewer, and both end at the CDS end
     assert len(effect.mt_protein) == len(effect.wt_protein) - 1
     assert effect.nmd.status == "unknown"
+
+
+def test_an_inframe_mutant_that_stops_before_the_cds_end_gets_a_decay_call(no_stop, fetch):
+    r, _ = no_stop
+    k = 4
+    before, exon = r["exons"][k - 1], r["exons"][k]
+    assert before[0] > r["cds_start"] and exon[1] < r["cds_end"]
+    # 6 intron bases kept after the donor bring an in-frame stop codon
+    effect = splicing.effect(fetch, r, r["exons"], [before, exon], [(before[0], before[1] + 6), exon])
+    assert effect.frameshift is False
+    assert len(effect.mt_protein) < len(effect.wt_protein)
+    assert effect.nmd.status == "decay"
 
 
 def test_a_frameshifted_mutant_reads_on_past_the_cds_end(fetch, transcripts, cases):

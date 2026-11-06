@@ -167,7 +167,7 @@ def effect(fetch, tx, tx_exons, source, target):
 
     Where the annotation gives no stop codon after the CDS, a product whose frame
     at the CDS end is the annotated one ends there like the wildtype, and its
-    decay call is "unknown". One whose frame there has shifted, or whose exons
+    decay call is "unknown" unless it meets a stop before that end. One whose frame there has shifted, or whose exons
     no longer hold the CDS end, reads on to its first stop through exons whose
     sequence is known. The frame is judged at the CDS end, not by the total
     change in length, so a change in the 3' UTR leaves the protein as it was.
@@ -191,10 +191,12 @@ def effect(fetch, tx, tx_exons, source, target):
     if mt == wt:
         return Effect("unchanged", None, exons, seq, offset, wt, mt, var_start, None)
     outcome = "truncated wt" if var_start == len(mt) else "mutated"
-    if not read_on and cds_end_offset(tx, exons) is not None:
+    stop = stop_codon(seq, offset + tx["cds_frame"], tx["chrom"])
+    end = cds_end_offset(tx, exons)
+    if not read_on and end is not None and (stop is None or stop > end):
         decay = UNKNOWN
     else:
-        decay = nmd(tx["strand"], exons, stop_codon(seq, offset + tx["cds_frame"], tx["chrom"]))
+        decay = nmd(tx["strand"], exons, stop)
     return Effect(outcome, frameshift, exons, seq, offset, wt, mt, var_start, decay)
 
 

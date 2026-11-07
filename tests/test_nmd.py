@@ -46,18 +46,17 @@ def test_a_stop_beyond_the_exons_has_no_call():
 
 
 def test_stop_codon_lands_on_ensembls_stop(fetch, transcripts):
-    """The base after the last CDS base begins the stop codon (Ensembl's CDS excludes it)."""
-    cds_ends, incomplete_end = collections.defaultdict(list), set()
+    """The base after the last CDS base begins the stop codon (Ensembl's CDS excludes
+    it), for every transcript whose annotation gives one."""
+    cds_ends = collections.defaultdict(list)
     for line in open(DATA / "annotation.gtf"):
         f = line.split("\t")
         tid = re.search(r'transcript_id "([^"]+)"', f[8]).group(1)
-        if 'tag "cds_end_NF"' in f[8]:
-            incomplete_end.add(tid)
         if f[2] == "CDS":
             cds_ends[tid].append((int(f[3]) - 1, int(f[4]) - 1))
     checked = 0
     for tid, r in transcripts.items():
-        if r["cds_start"] is None or tid in incomplete_end:
+        if r["cds_start"] is None or not r["stop_codon"]:
             continue
         parts = sorted(cds_ends[tid])
         stop_genomic = parts[-1][1] + 1 if r["strand"] == "+" else parts[0][0] - 1

@@ -26,8 +26,15 @@ def parse_gtf(path):
     """Transcripts of a GTF: {transcript_id: record}, exons sorted genomically.
 
     A record holds chrom, strand, the 0-based closed span, gene id and name,
-    the exons, the CDS start (the first coding base in transcript orientation,
-    0-based) with that codon's frame, and whether the CDS start is incomplete.
+    the exons, and for a coding transcript:
+      cds_start, cds_frame  the first coding base in transcript orientation
+                            (0-based) and that codon's frame
+      cds_end               the last coding base in transcript orientation
+      start_complete        whether the CDS begins at a full start codon: a
+                            start_codon row, or neither a cds_start_NF tag
+                            nor a frame other than 0
+      stop_codon            whether the annotation gives the stop codon after
+                            the CDS (a stop_codon row)
 
     The file may be gzipped and its lines in any order. A transcript id is
     expected once: a GTF that reuses one at another locus (as copies on the
@@ -37,12 +44,13 @@ def parse_gtf(path):
     tx = {}
     exons = collections.defaultdict(list)
     cds = collections.defaultdict(list)
+    codons = collections.defaultdict(set)
     opener = gzip.open if str(path).endswith(".gz") else open
     for line in opener(path, "rt"):
         if line.startswith("#") or not line.strip():
             continue
         f = line.rstrip("\n").split("\t")
-        if f[2] not in ("transcript", "exon", "CDS"):
+        if f[2] not in ("transcript", "exon", "CDS", "start_codon", "stop_codon"):
             continue
         attrs = collections.defaultdict(list)
         for k, v in ATTRIBUTE.findall(f[8]):
@@ -64,8 +72,10 @@ def parse_gtf(path):
             }
         elif f[2] == "exon":
             exons[tid].append((start, end))
-        else:
+        elif f[2] == "CDS":
             cds[tid].append((start, end, int(f[7])))
+        else:
+            codons[tid].add(f[2])
 
     orphans = set(exons) - set(tx)
     if orphans:
@@ -75,11 +85,16 @@ def parse_gtf(path):
         rec["exons"] = sorted(exons.get(tid, []))
         parts = sorted(cds.get(tid, []))
         if not parts:
-            rec["cds_start"] = rec["cds_frame"] = None
-        elif rec["strand"] == "+":
-            rec["cds_start"], rec["cds_frame"] = parts[0][0], parts[0][2]
+            rec["cds_start"] = rec["cds_frame"] = rec["cds_end"] = None
+            rec["start_complete"] = rec["stop_codon"] = False
+            continue
+        if rec["strand"] == "+":
+            rec["cds_start"], rec["cds_frame"], rec["cds_end"] = parts[0][0], parts[0][2], parts[-1][1]
         else:
-            rec["cds_start"], rec["cds_frame"] = parts[-1][1], parts[-1][2]
+            rec["cds_start"], rec["cds_frame"], rec["cds_end"] = parts[-1][1], parts[-1][2], parts[0][0]
+        rec["start_complete"] = ("start_codon" in codons[tid]
+                                 or (not rec["cds_start_nf"] and rec["cds_frame"] == 0))
+        rec["stop_codon"] = "stop_codon" in codons[tid]
     return tx
 
 

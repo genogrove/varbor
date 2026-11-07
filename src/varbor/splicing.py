@@ -22,8 +22,8 @@ import gzip
 import os
 from pathlib import Path
 
-from varbor.nmd import nmd
-from varbor.translate import protein, stop_codon
+from varbor.nmd import UNKNOWN, nmd
+from varbor.translate import cds_end_offset, mrna_offset, protein, stop_codon
 
 CLASSES = ("exon_skip", "alt_3prime", "alt_5prime", "intron_retention",
            "mutex_exons", "mult_exon_skip")
@@ -164,6 +164,13 @@ def effect(fetch, tx, tx_exons, source, target):
     meets no stop codon gets the "nonstop" decay status. Once it reaches the protein,
     the frame downstream shifts by the whole change in transcript length, and
     decay is judged on the changed exon structure.
+
+    Where the annotation gives no stop codon after the CDS, a product whose frame
+    at the CDS end is the annotated one ends there like the wildtype, and its
+    decay call is "unknown" unless it meets a stop before that end. One whose frame there has shifted, or whose exons
+    no longer hold the CDS end, reads on to its first stop through exons whose
+    sequence is known. The frame is judged at the CDS end, not by the total
+    change in length, so a change in the 3' UTR leaves the protein as it was.
     """
     span = locate(tx_exons, source, target)
     if span is None:
@@ -171,16 +178,40 @@ def effect(fetch, tx, tx_exons, source, target):
     exons = apply(tx_exons, span, target)
     if tx["cds_start"] is None:
         return Effect("noncoding", None, exons, None, None, None, None, None, None)
-    wt, _, _ = protein(fetch, tx, tx_exons)
-    mt, seq, offset = protein(fetch, tx, exons)
+    frameshift = (sum(e - s + 1 for s, e in exons)
+                  - sum(e - s + 1 for s, e in tx_exons)) % 3 != 0
+    wt, wt_seq, wt_offset = protein(fetch, tx, tx_exons)
+    first = wt_offset + tx["cds_frame"]
+    read_on = frame_shifted_at_cds_end(tx, tx_exons, exons)
+    mt, seq, offset = protein(fetch, tx, exons, read_on=read_on,
+                              initiator=wt_seq[first:first + 3])
     if mt is None:
         return Effect("cds start lost", None, exons, seq, None, wt, None, None, None)
     var_start = len(os.path.commonprefix([wt, mt]))
     if mt == wt:
         return Effect("unchanged", None, exons, seq, offset, wt, mt, var_start, None)
     outcome = "truncated wt" if var_start == len(mt) else "mutated"
-    frameshift = (sum(e - s + 1 for s, e in exons)
-                  - sum(e - s + 1 for s, e in tx_exons)) % 3 != 0
     stop = stop_codon(seq, offset + tx["cds_frame"], tx["chrom"])
-    decay = nmd(tx["strand"], exons, stop)
+    end = cds_end_offset(tx, exons)
+    if not read_on and end is not None and (stop is None or stop > end):
+        decay = UNKNOWN
+    else:
+        decay = nmd(tx["strand"], exons, stop)
     return Effect(outcome, frameshift, exons, seq, offset, wt, mt, var_start, decay)
+
+
+def frame_shifted_at_cds_end(tx, tx_exons, exons):
+    """Whether the changed exons put the annotated CDS end in another frame.
+
+    Only asked where the annotation gives no stop codon, so translation would
+    otherwise end at the CDS end. False when there is no such end to keep.
+    """
+    wt_end = cds_end_offset(tx, tx_exons)
+    mt_end = cds_end_offset(tx, exons)
+    if wt_end is None or mt_end is None:
+        return False
+    wt_start = mrna_offset(tx["strand"], tx_exons, tx["cds_start"])
+    mt_start = mrna_offset(tx["strand"], exons, tx["cds_start"])
+    if wt_start is None or mt_start is None:
+        return False
+    return ((mt_end - mt_start) - (wt_end - wt_start)) % 3 != 0

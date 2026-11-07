@@ -13,12 +13,16 @@ downstream of it to leave an exon junction complex behind:
 
 Otherwise the transcript is a decay target. A transcript whose reading frame
 meets no stop codon at all is a non-stop decay target, a different surveillance
-pathway, and is reported as such rather than judged by these rules.
+pathway, and is reported as such rather than judged by these rules. Where the
+protein ends at an annotated CDS end that has no stop codon, the stop is unknown
+and so is the call.
 """
 
 import collections
 
 NMD = collections.namedtuple("NMD", "status exon dist_ejc escape")
+
+UNKNOWN = NMD("unknown", None, None, None)
 
 
 def nmd(strand, exons, stop):

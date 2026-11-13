@@ -14,12 +14,8 @@ Coordinates are pygenogrove's: 0-based, both ends inclusive.
 """
 
 import collections
-import gzip
-import re
 
 import pygenogrove as pg
-
-ATTRIBUTE = re.compile(r'(\S+) "([^"]*)"')
 
 
 def parse_gtf(path):
@@ -45,37 +41,30 @@ def parse_gtf(path):
     exons = collections.defaultdict(list)
     cds = collections.defaultdict(list)
     codons = collections.defaultdict(set)
-    opener = gzip.open if str(path).endswith(".gz") else open
-    for line in opener(path, "rt"):
-        if line.startswith("#") or not line.strip():
+    for entry in pg.GffReader(str(path)):
+        if entry.type not in ("transcript", "exon", "CDS", "start_codon", "stop_codon"):
             continue
-        f = line.rstrip("\n").split("\t")
-        if f[2] not in ("transcript", "exon", "CDS", "start_codon", "stop_codon"):
-            continue
-        attrs = collections.defaultdict(list)
-        for k, v in ATTRIBUTE.findall(f[8]):
-            attrs[k].append(v)
-        tid = attrs["transcript_id"][0]
-        start, end = int(f[3]) - 1, int(f[4]) - 1
-        if f[2] == "transcript":
+        tid = entry.get_transcript_id()
+        start, end = entry.start - 1, entry.end - 1
+        if entry.type == "transcript":
             if tid in tx:
                 raise ValueError(f"{path}: transcript {tid} appears more than once")
             tx[tid] = {
                 "transcript_id": tid,
-                "chrom": f[0],
-                "strand": f[6],
+                "chrom": entry.seqid,
+                "strand": entry.strand,
                 "start": start,
                 "end": end,
-                "gene_id": attrs["gene_id"][0],
-                "gene_name": (attrs.get("gene_name") or [None])[0],
-                "cds_start_nf": "cds_start_NF" in attrs.get("tag", []),
+                "gene_id": entry.get_gene_id(),
+                "gene_name": entry.get_gene_name(),
+                "cds_start_nf": "cds_start_NF" in entry.get_attributes("tag"),
             }
-        elif f[2] == "exon":
+        elif entry.type == "exon":
             exons[tid].append((start, end))
-        elif f[2] == "CDS":
-            cds[tid].append((start, end, int(f[7])))
+        elif entry.type == "CDS":
+            cds[tid].append((start, end, entry.phase))
         else:
-            codons[tid].add(f[2])
+            codons[tid].add(entry.type)
 
     orphans = set(exons) - set(tx)
     if orphans:

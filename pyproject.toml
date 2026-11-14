@@ -10,7 +10,7 @@ readme = "README.md"
 license = "GPL-3.0-only"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
-dependencies = ["pygenogrove>=0.10"]
+dependencies = ["pygenogrove>=0.10.1"]
 
 [project.optional-dependencies]
 test = ["pytest"]

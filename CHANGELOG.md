@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Refactored
+
+- **GTF read with pygenogrove's `GffReader`**: `parse_gtf` no longer parses GTF lines itself; the records it returns are unchanged. Requires pygenogrove 0.10.1, which keeps every value of a repeated attribute such as `tag`. ([#10](https://github.com/genogrove/varbor/pull/10))
+
 ## [0.2.1] - 2026-11-06
 
 ### Fixed

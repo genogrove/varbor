@@ -1,5 +1,6 @@
 import gzip
 import random
+import re
 
 import pygenogrove as pg
 import pytest
@@ -87,3 +88,13 @@ def test_a_tag_among_several_is_kept(transcripts):
                 if '"ENST00000390238"' in l and l.split("\t")[2] == "transcript")
     assert line.count('tag "') == 6
     assert transcripts["ENST00000390238"]["cds_start_nf"] is True
+
+
+def test_an_exon_without_a_transcript_id_is_refused(tmp_path):
+    lines = open(DATA / "annotation.gtf").read().splitlines(keepends=True)
+    exon = next(i for i, l in enumerate(lines) if l.split("\t")[2] == "exon")
+    lines[exon] = re.sub(r'transcript_id "[^"]*"; ', "", lines[exon])
+    path = tmp_path / "no_id.gtf"
+    path.write_text("".join(lines))
+    with pytest.raises(RuntimeError, match="transcript_id"):
+        graph.parse_gtf(path)

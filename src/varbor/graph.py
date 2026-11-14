@@ -35,13 +35,14 @@ def parse_gtf(path):
     The file may be gzipped and its lines in any order. A transcript id is
     expected once: a GTF that reuses one at another locus (as copies on the
     pseudoautosomal regions can) would merge both into one record, so it is
-    refused, as is an exon whose transcript has no transcript line.
+    refused, as is an exon whose transcript has no transcript line. The reader
+    refuses a line missing a mandatory attribute such as transcript_id.
     """
     tx = {}
     exons = collections.defaultdict(list)
     cds = collections.defaultdict(list)
     codons = collections.defaultdict(set)
-    for entry in pg.GffReader(str(path)):
+    for entry in pg.GffReader(str(path), validate_gtf=True):
         if entry.type not in ("transcript", "exon", "CDS", "start_codon", "stop_codon"):
             continue
         tid = entry.get_transcript_id()
